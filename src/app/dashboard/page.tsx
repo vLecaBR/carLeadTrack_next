@@ -1,15 +1,13 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { CreateStoreForm } from "@/components/CreateStoreForm";
-import { LogoutButton } from "@/components/LogoutButton";
-import { OwnerDashboard } from "@/components/OwnerDashboard";
-import { VehicleManagement } from "@/components/VehicleManagement";
 import { prisma } from "@/lib/prisma";
+import { CreateStoreForm } from "@/components/CreateStoreForm";
+import { OwnerDashboard } from "@/components/OwnerDashboard";
+import { AdminHome } from "@/components/AdminHome";
 
 export default async function DashboardPage() {
   const session = await auth();
 
-  // Proteção de Rota: Se não tem sessão, volta pro login
   if (!session) {
     redirect("/login");
   }
@@ -18,65 +16,73 @@ export default async function DashboardPage() {
   const storeId = session.user?.storeId;
   const userName = session.user?.name || "Usuário";
 
-  // Busca os veículos do banco APENAS se o usuário pertencer a uma loja
-  let storeVehicles: any[] = [];
-  if (storeId) {
-    storeVehicles = await prisma.vehicle.findMany({
-      where: { storeId: storeId },
-      orderBy: { id: "desc" },
+  // BUSCA DADOS SE FOR SUPER ADMIN
+  let adminStats = null;
+  if (role === "SUPER_ADMIN") {
+    // Conta total de lojas
+    const totalStoresCount = await prisma.store.count();
+    
+    // Pega todas as lojas (para listar)
+    const storesList = await prisma.store.findMany({
+      select: { id: true, name: true, slug: true, subscriptionActive: true, plan: true },
+      orderBy: { id: "desc" }
     });
+
+    // Pega todos os usuários (menos o admin)
+    const totalUsersCount = await prisma.user.count({
+      where: { role: { not: "SUPER_ADMIN" } }
+    });
+
+    // Pega todos os leads
+    const allLeads = await prisma.lead.findMany();
+    const totalLeads = allLeads.length;
+    
+    // Leads convertidos (Visitou ou Venda Fechada)
+    const leadsConvertidos = allLeads.filter(l => l.status === "VISITED" || l.status === "CLOSED_SALE").length;
+
+    adminStats = {
+      totalStores: totalStoresCount,
+      activeStores: storesList.filter(s => s.subscriptionActive).length,
+      storesList: storesList,
+      totalUsers: totalUsersCount,
+      totalLeads: totalLeads,
+      leadsConvertidos: leadsConvertidos,
+      leadsPendentes: allLeads.filter(l => l.status === "NEW").length,
+      vendasFechadas: allLeads.filter(l => l.status === "CLOSED_SALE").length,
+    };
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Barra de Navegação Superior */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <h1 className="text-xl font-bold text-gray-900">MVPCarLead</h1>
-          <div className="flex items-center gap-4">
-            <span className="rounded bg-blue-100 px-2.5 py-1 text-xs font-semibold tracking-wide text-blue-800">
-              {role}
-            </span>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
+    <div className="p-6 lg:p-8">
+      {/* VISÃO DO SUPER ADMIN */}
+      {role === "SUPER_ADMIN" && adminStats && (
+        <div className="space-y-12">
+          {/* Card de Estatísticas do Admin */}
+          <AdminHome userName={userName} stats={adminStats} />
 
-      {/* Conteúdo Principal */}
-      <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-        
-        {/* VISÃO DO SUPER ADMIN */}
-        {role === "SUPER_ADMIN" && (
+          {/* Mantém o formulário de criar loja abaixo dos gráficos */}
           <div className="mx-auto max-w-3xl">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Administração Global</h2>
-              <p className="text-gray-600">Cadastre e gerencie os lojistas da plataforma.</p>
+            <div className="mb-6 border-t pt-8">
+              <h2 className="text-2xl font-bold text-gray-800">Cadastrar Nova Loja</h2>
+              <p className="text-gray-600">Adicione um novo lojista e libere o acesso à plataforma.</p>
             </div>
             <CreateStoreForm />
           </div>
-        )}
+        </div>
+      )}
 
-        {/* VISÃO DO DONO DA LOJA (João, Carlinhos, etc) */}
-        {role === "OWNER" && storeId && (
-          <div className="space-y-8">
-            {/* O componente mágico que só busca dados da loja logada */}
-            <OwnerDashboard storeId={storeId} userName={userName} />
+      {/* VISÃO DO DONO DA LOJA */}
+      {role === "OWNER" && storeId && (
+        <OwnerDashboard storeId={storeId} userName={userName} />
+      )}
 
-            {/* Novo Componente de Gestão de Estoque */}
-            <VehicleManagement initialVehicles={storeVehicles} />
-          </div>
-        )}
-
-        {/* VISÃO DO VENDEDOR (SELLER) */}
-        {role === "SELLER" && storeId && (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">Área do Vendedor</h2>
-            <p className="mt-2 text-gray-600">Bem-vindo, {userName}. Aqui você gerencia seus leads e vendas.</p>
-            {/* O Kanban de Leads entrará aqui futuramente */}
-          </div>
-        )}
-
-      </main>
+      {/* VISÃO DO VENDEDOR */}
+      {role === "SELLER" && storeId && (
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Área do Vendedor</h2>
+          <p className="mt-2 text-gray-600">Bem-vindo, {userName}. Acesse as abas laterais para gerenciar o Estoque e os Leads.</p>
+        </div>
+      )}
     </div>
   );
 }
