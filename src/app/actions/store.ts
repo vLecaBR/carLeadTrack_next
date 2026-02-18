@@ -122,7 +122,6 @@ export async function toggleStoreSubscription(storeId: string, currentStatus: bo
 // 5. EXCLUIR LOJA (Ação do Super Admin)
 export async function deleteStore(storeId: string) {
   try {
-    // O Prisma deleta em cascata se configurado, ou limpa as relações aqui
     await prisma.store.delete({
       where: { id: storeId }
     });
@@ -132,5 +131,33 @@ export async function deleteStore(storeId: string) {
   } catch (error) {
     console.error("Erro ao excluir loja:", error);
     return { error: "Erro ao excluir. Certifique-se de que a loja não possui dependências críticas." };
+  }
+}
+
+// 6. EDITAR USUÁRIO DA LOJA (Ação do Super Admin)
+export async function updateUserByAdmin(userId: string, formData: FormData) {
+  try {
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const role = formData.get("role") as string;
+    const rawPassword = formData.get("password") as string;
+
+    const dataToUpdate: any = { name, email, role };
+
+    // Só atualiza a senha se o admin digitou algo no campo
+    if (rawPassword && rawPassword.trim() !== "") {
+      dataToUpdate.password = await bcrypt.hash(rawPassword, 10);
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: dataToUpdate,
+    });
+
+    revalidatePath("/dashboard/lojas");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao atualizar usuário:", error);
+    return { error: "Erro ao atualizar usuário. O e-mail já pode estar em uso por outra conta." };
   }
 }
