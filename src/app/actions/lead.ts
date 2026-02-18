@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
-// Ação para criar um lead de teste manualmente
+// Ação para criar um lead de teste manualmente (pelo painel)
 export async function createLead(formData: FormData) {
   try {
     const session = await auth();
@@ -31,7 +31,7 @@ export async function createLead(formData: FormData) {
   }
 }
 
-// Ação para mover o lead de coluna
+// Ação para mover o lead de coluna (Kanban)
 export async function updateLeadStatus(leadId: string, newStatus: string) {
   try {
     const session = await auth();
@@ -49,5 +49,36 @@ export async function updateLeadStatus(leadId: string, newStatus: string) {
     return { success: true };
   } catch (error) {
     return { error: "Erro ao atualizar estado." };
+  }
+}
+
+// ==============================================================
+// NOVA FUNÇÃO: Cria um lead a partir da vitrine PÚBLICA (Sem login)
+// ==============================================================
+export async function createPublicLead(storeId: string, formData: FormData) {
+  try {
+    const customerName = formData.get("nome") as string;
+    const customerPhone = formData.get("telefone") as string;
+    
+    // Cria o lead com status NEW e vincula à loja específica da URL
+    const lead = await prisma.lead.create({
+      data: {
+        storeId,
+        customerName,
+        customerPhone,
+        status: "NEW",
+        value: 15.00, // Exemplo de custo do lead (pode ser 0 se for orgânico)
+      }
+    });
+
+    // Avisa o painel do dono da loja que tem lead novo lá!
+    revalidatePath("/dashboard/leads");
+    revalidatePath("/dashboard");
+
+    // Retorna os últimos 6 caracteres do ID como se fosse o "QR Code" pro cliente
+    return { success: true, qrCode: lead.id.slice(-6).toUpperCase() };
+  } catch (error) {
+    console.error("Erro no Lead Público:", error);
+    return { error: "Erro ao enviar interesse. Tente novamente." };
   }
 }
