@@ -28,7 +28,7 @@ export function DashboardSidebar({ user }: SidebarProps) {
   
   // Cores dinâmicas: Roxo pro Admin, Azul pro Lojista
   const themeColors = isSuperAdmin 
-    ? "bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 border-purple-700/50" 
+    ? "bg-linear-to-br from-purple-900 via-purple-800 to-indigo-900 border-purple-700/50" 
     : "bg-white border-gray-200";
     
   const textColors = isSuperAdmin ? "text-white" : "text-gray-900";
@@ -70,7 +70,7 @@ export function DashboardSidebar({ user }: SidebarProps) {
       <aside className={`fixed md:sticky top-0 left-0 z-40 h-screen w-64 ${themeColors} flex flex-col shadow-xl transition-transform ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
         
         {/* Topo da Sidebar (Cabeçalho) */}
-        <div className={`p-6 border-b ${isSuperAdmin ? "border-purple-700/50" : "border-gray-100 bg-gradient-to-br from-blue-600 to-indigo-600 text-white"}`}>
+        <div className={`p-6 border-b ${isSuperAdmin ? "border-purple-700/50" : "border-gray-100 bg-linear-to-br from-blue-600 to-indigo-600 text-white"}`}>
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-white/20 backdrop-blur-sm p-2.5 rounded-xl border border-white/30">
               {isSuperAdmin ? <Shield className="size-6 text-white" /> : <Car className="size-6 text-white" />}
@@ -117,7 +117,7 @@ export function DashboardSidebar({ user }: SidebarProps) {
         <div className={`p-4 border-t ${isSuperAdmin ? "border-purple-700/50" : "border-gray-100 bg-gray-50/50"}`}>
           <div className={`flex items-center gap-3 mb-3 p-3 rounded-xl border ${isSuperAdmin ? "bg-white/10 border-white/20 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
             <Avatar>
-              <AvatarFallback className={`font-bold ${isSuperAdmin ? "bg-white text-purple-900" : "bg-gradient-to-br from-blue-600 to-indigo-600 text-white"}`}>
+              <AvatarFallback className={`font-bold ${isSuperAdmin ? "bg-white text-purple-900" : "bg-linear-to-br from-blue-600 to-indigo-600 text-white"}`}>
                 {user.name.charAt(0)}
               </AvatarFallback>
             </Avatar>
