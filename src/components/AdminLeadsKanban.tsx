@@ -103,7 +103,7 @@ function Column({ status, leads, onDrop, onLeadClick }: ColumnProps) {
     <div
       // CORREÇÃO AQUI TAMBÉM: Para o drop funcionar sem reclamar
       ref={(node) => { drop(node); }}
-      className={`flex-shrink-0 w-80 ${isOver ? 'bg-purple-50/50 border-purple-200' : 'bg-gray-50/50 border-transparent'} border-2 rounded-2xl p-4 transition-colors flex flex-col h-[calc(100vh-280px)]`}
+      className={`shrink-0 w-80 ${isOver ? 'bg-purple-50/50 border-purple-200' : 'bg-gray-50/50 border-transparent'} border-2 rounded-2xl p-4 transition-colors flex flex-col h-[calc(100vh-280px)]`}
     >
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2">
@@ -202,7 +202,7 @@ export function AdminLeadsKanban({ initialLeads }: { initialLeads: any[] }) {
               <p className="text-3xl font-black text-purple-600 mt-1">{conversionRate}%</p>
             </CardContent>
           </Card>
-          <Card className="border-2 border-gray-100 shadow-sm bg-gradient-to-br from-blue-50 to-white">
+          <Card className="border-2 border-gray-100 shadow-sm bg-linear-to-br from-blue-50 to-white">
             <CardContent className="p-5 text-center">
               <p className="text-xs font-bold text-blue-500 uppercase tracking-widest">Receita Potencial</p>
               <p className="text-3xl font-black text-blue-700 mt-1">R$ {totalValue.toLocaleString('pt-BR')}</p>
@@ -274,7 +274,7 @@ export function AdminLeadsKanban({ initialLeads }: { initialLeads: any[] }) {
                     <Label className="text-xs font-bold text-gray-400 uppercase">Loja Responsável</Label>
                     <div className="flex items-center gap-2 mt-1 text-purple-700 bg-purple-50 px-2 py-1 rounded-md w-fit">
                       <Store className="size-4" />
-                      <p className="font-bold text-sm truncate max-w-[120px]">
+                      <p className="font-bold text-sm truncate max-w-30">
                         {selectedLead.store?.name}
                       </p>
                     </div>
