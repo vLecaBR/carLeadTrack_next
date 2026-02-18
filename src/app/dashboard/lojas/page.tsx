@@ -10,23 +10,21 @@ export default async function LojasAdminPage() {
     redirect("/dashboard");
   }
 
-  // A mágica está aqui: incluir o createdAt e o _count
+  // Busca todas as lojas, seus usuários e contagem de métricas
   const stores = await prisma.store.findMany({
-    orderBy: { id: "desc" },
+    orderBy: { id: "desc" }, // <-- CORRIGIDO AQUI! Ordenando pelo ID
     include: {
-      _count: {
-        select: {
-          leads: true,
-          vehicles: true,
-          users: true,
-        },
+      users: {
+        select: { id: true, name: true, email: true, role: true }
       },
-    },
+      _count: {
+        select: { leads: true, vehicles: true }
+      }
+    }
   });
 
   return (
     <div className="p-6 lg:p-8">
-      {/* O TypeScript agora vai reconhecer que o array tem tudo que o StoreData precisa */}
       <StoreManagement stores={stores as any} />
     </div>
   );
