@@ -242,7 +242,7 @@ export function StoreManagement({ stores }: { stores: any[] }) {
                       Usuários ({store.users?.length || 0})
                     </h4>
                   </div>
-                  <div className="max-h-[160px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                  <div className="max-h-40 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     {store.users?.map((u: any) => (
                       <div key={u.id} className="group flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl hover:border-purple-300 hover:shadow-sm transition-all">
                         <div className="flex items-center gap-3 overflow-hidden">

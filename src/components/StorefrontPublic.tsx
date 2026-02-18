@@ -231,7 +231,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-gray-900 mb-4">Sobre a {store.name}</h2>
-              <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 mx-auto mb-6"></div>
+              <div className="w-24 h-1 bg-linear-to-r from-blue-600 to-indigo-600 mx-auto mb-6"></div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -296,7 +296,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
       </section>
 
       {/* Nossos Diferenciais */}
-      <section className="bg-gradient-to-b from-gray-50 to-white py-16">
+      <section className="bg-linear-to-b from-gray-50 to-white py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Por que Comprar Conosco?</h2>
@@ -316,7 +316,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
             ].map((item, idx) => (
               <Card key={idx} className="border-2 hover:border-blue-200 hover:shadow-xl transition-all group">
                 <CardContent className="p-6">
-                  <div className={`bg-gradient-to-br ${item.color} w-14 h-14 rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
+                  <div className={`bg-linear-to-br ${item.color} w-14 h-14 rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
                     <item.icon className="size-7 text-white" />
                   </div>
                   <h3 className="font-bold text-xl text-gray-900 mb-3">{item.title}</h3>
@@ -375,7 +375,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
 
           {/* Filtros Avançados */}
           {showFilters && (
-            <div className="mt-4 p-6 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-blue-100 space-y-6">
+            <div className="mt-4 p-6 bg-linear-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-blue-100 space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-gray-900 text-lg">Filtros Avançados</h3>
                 <div className="flex gap-2">
@@ -611,24 +611,24 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
 
               {/* Vehicle Info Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl text-center border-2 border-blue-200">
+                <div className="bg-linear-to-br from-blue-50 to-blue-100 p-6 rounded-xl text-center border-2 border-blue-200">
                   <Calendar className="size-8 mx-auto mb-3 text-blue-600" />
                   <p className="text-xs text-gray-600 mb-1">Ano/Modelo</p>
                   <p className="text-2xl font-bold text-gray-900">{selectedVehicle.year}/{selectedVehicle.year}</p>
                 </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl text-center border-2 border-green-200">
+                <div className="bg-linear-to-br from-green-50 to-green-100 p-6 rounded-xl text-center border-2 border-green-200">
                   <Gauge className="size-8 mx-auto mb-3 text-green-600" />
                   <p className="text-xs text-gray-600 mb-1">Quilometragem</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {selectedVehicle.km.toLocaleString('pt-BR')} km
                   </p>
                 </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl text-center border-2 border-purple-200">
+                <div className="bg-linear-to-br from-purple-50 to-purple-100 p-6 rounded-xl text-center border-2 border-purple-200">
                   <Fuel className="size-8 mx-auto mb-3 text-purple-600" />
                   <p className="text-xs text-gray-600 mb-1">Combustível</p>
                   <p className="text-2xl font-bold text-gray-900">Flex</p>
                 </div>
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl text-center border-2 border-orange-200">
+                <div className="bg-linear-to-br from-orange-50 to-orange-100 p-6 rounded-xl text-center border-2 border-orange-200">
                   <Cog className="size-8 mx-auto mb-3 text-orange-600" />
                   <p className="text-xs text-gray-600 mb-1">Câmbio</p>
                   <p className="text-2xl font-bold text-gray-900">Automático</p>
@@ -636,7 +636,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
               </div>
 
               {/* Price Section */}
-              <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 rounded-2xl border-2 border-blue-200">
+              <div className="bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 rounded-2xl border-2 border-blue-200">
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                   <div>
                     <p className="text-sm text-gray-600 mb-2">Preço à vista com desconto</p>
@@ -655,7 +655,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
                       </p>
                     </div>
                   </div>
-                  <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white text-base px-6 py-3 shadow-lg border-0">
+                  <Badge className="bg-linear-to-r from-green-500 to-green-600 text-white text-base px-6 py-3 shadow-lg border-0">
                     <Check className="size-6 mr-2" />
                     Garantia Inclusa
                   </Badge>
@@ -738,7 +738,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
           
           <form onSubmit={handleContactSubmit} className="space-y-5">
             {selectedVehicle && (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl flex items-center gap-4 border-2 border-blue-200">
+              <div className="bg-linear-to-r from-blue-50 to-indigo-50 p-4 rounded-xl flex items-center gap-4 border-2 border-blue-200">
                 <div className="bg-blue-600 p-3 rounded-xl">
                   <Car className="size-8 text-white" />
                 </div>
@@ -770,9 +770,9 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
               />
             </div>
 
-            <div className="bg-gradient-to-r from-green-50 to-green-100 p-5 rounded-xl border-2 border-green-200">
+            <div className="bg-linear-to-r from-green-50 to-green-100 p-5 rounded-xl border-2 border-green-200">
               <div className="flex gap-3">
-                <Clock className="size-6 text-green-600 flex-shrink-0 mt-0.5" />
+                <Clock className="size-6 text-green-600 shrink-0 mt-0.5" />
                 <div className="text-sm text-green-900">
                   <p className="font-bold mb-2 text-base">🎯 Atendimento Prioritário!</p>
                   <ul className="space-y-1 text-green-800">
@@ -807,7 +807,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
       </Dialog>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-gray-300 py-16 mt-16">
+      <footer className="bg-linear-to-br from-gray-900 to-gray-800 text-gray-300 py-16 mt-16">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-12 mb-12">
             <div>
