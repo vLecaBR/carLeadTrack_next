@@ -4,29 +4,36 @@ import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import * as bcrypt from 'bcrypt'
 
-// 1. Cria a conexão usando o pacote 'pg'
 const connectionString = `${process.env.DATABASE_URL}`
 const pool = new Pool({ connectionString })
 const adapter = new PrismaPg(pool)
 
-// 2. Passa o adaptador para o Prisma 7
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
-  const hashedPassword = await bcrypt.hash("admin123", 10)
+  // Puxa as credenciais do .env de forma segura
+  const email = process.env.ADMIN_EMAIL
+  const password = process.env.ADMIN_PASSWORD
+
+  // Trava de segurança caso as variáveis não estejam no .env
+  if (!email || !password) {
+    throw new Error('❌ Variáveis ADMIN_EMAIL e ADMIN_PASSWORD não encontradas no arquivo .env')
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10)
 
   const admin = await prisma.user.upsert({
-    where: { email: 'vitartas@icloud.com' }, 
+    where: { email: email }, 
     update: {},
     create: {
-      email: 'vitartas@icloud.com',
+      email: email,
       name: 'Admin Master',
       password: hashedPassword,
       role: 'SUPER_ADMIN',
     },
   })
 
-  console.log('✅ Usuário Administrador criado com sucesso:', admin.email)
+  console.log('✅ Usuário Administrador garantido com sucesso:', admin.email)
 }
 
 main()
