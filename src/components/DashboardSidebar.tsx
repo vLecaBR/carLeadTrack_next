@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { LayoutDashboard, Car, Users as UsersIcon, UserCircle, Settings, LogOut, Store, ExternalLink, Bell, Menu, X } from "lucide-react";
+import { LayoutDashboard, Car, Users as UsersIcon, UserCircle, Settings, LogOut, Store, ExternalLink, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -15,11 +15,12 @@ interface SidebarProps {
     name: string;
     role: string;
     storeName?: string;
+    storeSlug?: string | null; // <-- Adicionamos o slug aqui
   };
 }
 
 export function DashboardSidebar({ user }: SidebarProps) {
-  const pathname = usePathname(); // Pega a URL atual do Next.js
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isOwner = user.role === "OWNER" || user.role === "SUPER_ADMIN";
@@ -33,13 +34,17 @@ export function DashboardSidebar({ user }: SidebarProps) {
     { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings, show: isOwner, badge: null },
   ];
 
+  // Função atualizada para abrir a vitrine real em nova aba
   const handleViewStorefront = () => {
-    toast.info("A vitrine pública será desenvolvida em breve!");
+    if (user.storeSlug) {
+      window.open(`/loja/${user.storeSlug}`, "_blank");
+    } else {
+      toast.error("Você precisa configurar a loja primeiro!");
+    }
   };
 
   return (
     <>
-      {/* Botão Mobile */}
       <button 
         className="md:hidden fixed top-4 right-4 z-50 p-2 bg-white rounded-lg shadow-md"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -47,7 +52,6 @@ export function DashboardSidebar({ user }: SidebarProps) {
         {isMobileMenuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
       </button>
 
-      {/* Sidebar */}
       <aside className={`fixed md:sticky top-0 left-0 z-40 h-screen w-64 bg-white border-r border-gray-200 flex flex-col shadow-xl transition-transform ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
         <div className="p-6 border-b border-gray-100 bg-linear-to-br from-blue-600 to-indigo-600 text-white">
           <div className="flex items-center gap-3 mb-4">
