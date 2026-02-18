@@ -33,19 +33,21 @@ model User {
 }
 
 model Store {
-  id              String   @id @default(cuid())
-  name            String
-  slug            String   @unique
-  cnpj            String   @unique
-  address         String
-  plan            String   
-  subscriptionActive Boolean @default(true)
-  ownerName       String
+  id                 String   @id @default(cuid())
+  name               String
+  slug               String   @unique
+  cnpj               String   @unique
+  address            String
+  phone              String? 
+  primaryColor       String?  @default("#3b82f6")
+  plan               String   
+  subscriptionActive Boolean  @default(true)
+  ownerName          String
   
-  users           User[]   
-  vehicles        Vehicle[]
-  leads           Lead[]
-  sales           Sale[]
+  users              User[]   
+  vehicles           Vehicle[]
+  leads              Lead[]
+  sales              Sale[]
 }
 
 model Vehicle {
