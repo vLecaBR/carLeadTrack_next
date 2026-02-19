@@ -144,7 +144,6 @@ export async function updateUserByAdmin(userId: string, formData: FormData) {
 
     const dataToUpdate: any = { name, email, role };
 
-    // Só atualiza a senha se o admin digitou algo no campo
     if (rawPassword && rawPassword.trim() !== "") {
       dataToUpdate.password = await bcrypt.hash(rawPassword, 10);
     }
@@ -159,5 +158,53 @@ export async function updateUserByAdmin(userId: string, formData: FormData) {
   } catch (error) {
     console.error("Erro ao atualizar usuário:", error);
     return { error: "Erro ao atualizar usuário. O e-mail já pode estar em uso por outra conta." };
+  }
+}
+
+// 7. REGISTRO PÚBLICO (Self-Service do Cliente na Landing Page)
+export async function registerPublicStore(formData: FormData) {
+  try {
+    const ownerName = formData.get("ownerName") as string;
+    const storeName = formData.get("storeName") as string;
+    const ownerEmail = formData.get("ownerEmail") as string;
+    const rawPassword = formData.get("password") as string;
+
+    // Gera um slug automático seguro usando random string
+    const baseSlug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'loja';
+    const slug = `${baseSlug}-${Math.random().toString(36).substring(2, 8)}`;
+
+    // Resolve o erro de Unique Constraint gerando um CNPJ "falso" mas único
+    const tempCnpj = `PENDENTE-${Date.now()}`;
+
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+    await prisma.$transaction(async (tx) => {
+      const store = await tx.store.create({
+        data: {
+          name: storeName,
+          slug: slug,
+          cnpj: tempCnpj, // Agora o Prisma nunca vai barrar por CNPJ repetido
+          address: "Pendente de preenchimento",
+          plan: "TRIAL",
+          subscriptionActive: false, // Nasce bloqueado/modo teste
+          ownerName: ownerName,
+        },
+      });
+
+      await tx.user.create({
+        data: {
+          name: ownerName,
+          email: ownerEmail,
+          password: hashedPassword,
+          role: "OWNER",
+          storeId: store.id,
+        },
+      });
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro no registro público:", error);
+    return { error: "Erro ao criar conta. Este e-mail já pode estar cadastrado." };
   }
 }
