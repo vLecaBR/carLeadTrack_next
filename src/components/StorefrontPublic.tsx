@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -12,12 +11,17 @@ import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Car, Phone, MapPin, Search, ArrowLeft, MessageCircle, Calendar, Gauge, 
-  DollarSign, ChevronLeft, ChevronRight, Filter, X, Check, Zap, Shield, 
-  Award, Clock, Fuel, Cog, Heart, Share2, Star, Users, TrendingUp, ThumbsUp, 
-  Wrench, FileText, CreditCard
+  DollarSign, Filter, X, Check, Zap, Shield, Award, Clock, Fuel, Cog, 
+  Heart, Share2, Star, Users, TrendingUp, ThumbsUp, Wrench, FileText, CreditCard
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { createPublicLead } from '@/app/actions/lead';
+
+// Mock Action temporária até criarmos a real do Lead
+const mockCreatePublicLead = async (storeId: string, formData: FormData) => {
+  return new Promise<{ error?: string, qrCode?: string }>((resolve) => 
+    setTimeout(() => resolve({ qrCode: "LEAD-" + Math.random().toString(36).substring(2, 8).toUpperCase() }), 1000)
+  );
+};
 
 interface StorefrontPublicProps {
   store: any;
@@ -37,11 +41,13 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
   const [showFilters, setShowFilters] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Filtros
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 300000]);
-  const [yearRange, setYearRange] = useState<[number, number]>([2015, new Date().getFullYear()]);
+  // Filtros ajustados para não esconder nada na abertura
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500000]);
+  const [yearRange, setYearRange] = useState<[number, number]>([1920, new Date().getFullYear()]);
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('recent');
+  
+  // Ordenação padrão alterada para 'Menor Preço'
+  const [sortBy, setSortBy] = useState<string>('price-asc');
 
   const primaryColor = store?.primaryColor || '#3b82f6';
 
@@ -76,7 +82,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
     setIsSubmitting(true);
     
     const formData = new FormData(e.target as HTMLFormElement);
-    const result = await createPublicLead(store.id, formData);
+    const result = await mockCreatePublicLead(store.id, formData);
     
     if (result.error) {
       toast.error(result.error);
@@ -84,8 +90,8 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
       toast.success(
         <div>
           <p className="font-semibold">Lead registrado com sucesso!</p>
-          <p className="text-sm mt-1">Seu código de visita: <span className="font-mono font-bold">{result.qrCode}</span></p>
-          <p className="text-xs mt-1">Mostre este código na loja para atendimento prioritário!</p>
+          <p className="text-sm mt-1">Seu código de visita: <span className="font-mono font-bold text-lg text-blue-600">{result.qrCode}</span></p>
+          <p className="text-xs mt-1 text-gray-500">Mostre este código na loja para atendimento prioritário!</p>
         </div>,
         { duration: 10000 }
       );
@@ -94,20 +100,20 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
     setIsSubmitting(false);
   };
 
-  const nextImage = () => {
-    // Como ainda não temos o array de fotos no DB, vamos ignorar a troca de fotos por enquanto
-  };
-
-  const prevImage = () => {
-    // Como ainda não temos o array de fotos no DB, vamos ignorar a troca de fotos por enquanto
-  };
-
   const resetFilters = () => {
-    setPriceRange([0, 300000]);
-    setYearRange([2015, new Date().getFullYear()]);
+    setPriceRange([0, 500000]);
+    setYearRange([1920, new Date().getFullYear()]);
     setSelectedBrand('all');
-    setSortBy('recent');
+    setSortBy('price-asc'); // Mantém o menor preço ao resetar
   };
+
+  // Verifica se há algum filtro ativado pelo usuário para mostrar a tag "Ativos"
+  const hasActiveFilters = 
+    selectedBrand !== 'all' || 
+    priceRange[0] > 0 || 
+    priceRange[1] < 500000 || 
+    yearRange[0] > 1920 || 
+    yearRange[1] < new Date().getFullYear();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -231,7 +237,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-gray-900 mb-4">Sobre a {store.name}</h2>
-              <div className="w-24 h-1 bg-linear-to-r from-blue-600 to-indigo-600 mx-auto mb-6"></div>
+              <div className="w-24 h-1 mx-auto mb-6" style={{ backgroundColor: primaryColor }}></div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -296,7 +302,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
       </section>
 
       {/* Nossos Diferenciais */}
-      <section className="bg-linear-to-b from-gray-50 to-white py-16">
+      <section className="bg-gradient-to-b from-gray-50 to-white py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Por que Comprar Conosco?</h2>
@@ -316,7 +322,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
             ].map((item, idx) => (
               <Card key={idx} className="border-2 hover:border-blue-200 hover:shadow-xl transition-all group">
                 <CardContent className="p-6">
-                  <div className={`bg-linear-to-br ${item.color} w-14 h-14 rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
+                  <div className={`bg-gradient-to-br ${item.color} w-14 h-14 rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
                     <item.icon className="size-7 text-white" />
                   </div>
                   <h3 className="font-bold text-xl text-gray-900 mb-3">{item.title}</h3>
@@ -365,7 +371,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
             >
               <Filter className="size-4" />
               Filtros
-              {(selectedBrand !== 'all' || priceRange[0] > 0 || priceRange[1] < 300000) && (
+              {hasActiveFilters && (
                 <Badge variant="secondary" className="ml-2 bg-blue-600 text-white">
                   Ativos
                 </Badge>
@@ -375,7 +381,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
 
           {/* Filtros Avançados */}
           {showFilters && (
-            <div className="mt-4 p-6 bg-linear-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-blue-100 space-y-6">
+            <div className="mt-4 p-6 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-blue-100 space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-gray-900 text-lg">Filtros Avançados</h3>
                 <div className="flex gap-2">
@@ -393,7 +399,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
                 <div className="space-y-2">
                   <Label className="font-semibold">Marca</Label>
                   <Select value={selectedBrand} onValueChange={setSelectedBrand}>
-                    <SelectTrigger className="border-2">
+                    <SelectTrigger className="border-2 bg-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -411,7 +417,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
                   <div className="pt-2">
                     <Slider
                       min={0}
-                      max={300000}
+                      max={500000}
                       step={5000}
                       value={priceRange}
                       onValueChange={(value) => setPriceRange(value as [number, number])}
@@ -429,8 +435,8 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
                   <Label className="font-semibold">Ano do Veículo</Label>
                   <div className="pt-2">
                     <Slider
-                      min={2015}
-                      max={2024}
+                      min={1920}
+                      max={2026}
                       step={1}
                       value={yearRange}
                       onValueChange={(value) => setYearRange(value as [number, number])}
@@ -459,120 +465,130 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
 
         {/* Vehicle Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredVehicles.map((vehicle) => (
-            <Card 
-              key={vehicle.id} 
-              className="overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 hover:border-blue-300"
-              onClick={() => {
-                setSelectedVehicle(vehicle);
-                setCurrentImageIndex(0);
-              }}
-            >
-              <div className="aspect-video bg-gray-200 relative overflow-hidden flex items-center justify-center">
-                {/* Fallback de imagem caso não tenha no banco */}
-                <Car className="size-16 text-gray-400" />
-                
-                <div className="absolute top-3 left-3">
-                  <Badge className="bg-white text-gray-900 font-bold shadow-lg">
-                    {vehicle.year}
-                  </Badge>
-                </div>
-                <div className="absolute top-3 right-3 flex gap-2">
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toast.success('Adicionado aos favoritos!');
-                    }}
-                    className="bg-white/90 backdrop-blur-sm p-2.5 rounded-full hover:bg-white transition-all shadow-lg hover:scale-110"
-                  >
-                    <Heart className="size-5 text-gray-700" />
-                  </button>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toast.success('Link copiado para área de transferência!');
-                    }}
-                    className="bg-white/90 backdrop-blur-sm p-2.5 rounded-full hover:bg-white transition-all shadow-lg hover:scale-110"
-                  >
-                    <Share2 className="size-5 text-gray-700" />
-                  </button>
-                </div>
-              </div>
-              
-              <CardContent className="p-5">
-                <h3 className="font-bold text-2xl text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
-                  {vehicle.brand} {vehicle.model}
-                </h3>
-                
-                <div className="grid grid-cols-2 gap-2 mb-4 text-sm text-gray-600">
-                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
-                    <Calendar className="size-4 text-gray-500" />
-                    <span className="font-medium">{vehicle.year}</span>
+          {filteredVehicles.map((vehicle) => {
+            // A MAGICA: Lendo a imagem da tabela relacionada
+            const coverImage = vehicle.images && vehicle.images.length > 0 ? vehicle.images[0].url : null;
+            
+            return (
+              <Card 
+                key={vehicle.id} 
+                className="overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 hover:border-blue-300"
+                onClick={() => {
+                  setSelectedVehicle(vehicle);
+                }}
+              >
+                <div className="aspect-video bg-gray-200 relative overflow-hidden flex items-center justify-center">
+                  {coverImage ? (
+                    <img src={coverImage} alt={vehicle.model} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  ) : (
+                    <div className="text-gray-400 flex flex-col items-center">
+                      <Car className="size-16 opacity-50 mb-2" />
+                      <span className="text-sm font-medium">Foto Indisponível</span>
+                    </div>
+                  )}
+                  
+                  <div className="absolute top-3 left-3">
+                    <Badge className="bg-white text-gray-900 font-bold shadow-lg">
+                      {vehicle.year}
+                    </Badge>
                   </div>
-                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
-                    <Gauge className="size-4 text-gray-500" />
-                    <span className="font-medium">{vehicle.km.toLocaleString('pt-BR')} km</span>
-                  </div>
-                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
-                    <Fuel className="size-4 text-gray-500" />
-                    <span className="font-medium">Flex</span>
-                  </div>
-                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
-                    <Cog className="size-4 text-gray-500" />
-                    <span className="font-medium">Automático</span>
-                  </div>
-                </div>
-
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
-                  {vehicle.description || "Veículo em excelente estado, com garantia e revisado. Ótima oportunidade!"}
-                </p>
-
-                <div className="border-t pt-4 mb-4">
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-xs text-gray-500">A partir de</span>
-                  </div>
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <p 
-                      className="text-4xl font-bold"
-                      style={{ color: primaryColor }}
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toast.success('Adicionado aos favoritos!');
+                      }}
+                      className="bg-white/90 backdrop-blur-sm p-2.5 rounded-full hover:bg-white transition-all shadow-lg hover:scale-110"
                     >
-                      R$ {vehicle.price.toLocaleString('pt-BR')}
+                      <Heart className="size-5 text-gray-700" />
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toast.success('Link copiado para área de transferência!');
+                      }}
+                      className="bg-white/90 backdrop-blur-sm p-2.5 rounded-full hover:bg-white transition-all shadow-lg hover:scale-110"
+                    >
+                      <Share2 className="size-5 text-gray-700" />
+                    </button>
+                  </div>
+                </div>
+                
+                <CardContent className="p-5">
+                  <h3 className="font-bold text-2xl text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                    {vehicle.brand} {vehicle.model}
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 gap-2 mb-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
+                      <Calendar className="size-4 text-gray-500" />
+                      <span className="font-medium">{vehicle.year}</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
+                      <Gauge className="size-4 text-gray-500" />
+                      <span className="font-medium">{vehicle.km.toLocaleString('pt-BR')} km</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
+                      <Fuel className="size-4 text-gray-500" />
+                      <span className="font-medium">Flex</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
+                      <Cog className="size-4 text-gray-500" />
+                      <span className="font-medium">Auto</span>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
+                    {vehicle.description || "Veículo em excelente estado, com garantia e revisado. Ótima oportunidade!"}
+                  </p>
+
+                  <div className="border-t pt-4 mb-4">
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="text-xs text-gray-500">A partir de</span>
+                    </div>
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <p 
+                        className="text-4xl font-bold"
+                        style={{ color: primaryColor }}
+                      >
+                        R$ {vehicle.price.toLocaleString('pt-BR')}
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-600 bg-green-50 px-3 py-1.5 rounded-lg inline-block">
+                      ou <strong>48x de R$ {(vehicle.price / 48).toLocaleString('pt-BR', {maximumFractionDigits: 0})}</strong> s/ juros
                     </p>
                   </div>
-                  <p className="text-xs text-gray-600 bg-green-50 px-3 py-1.5 rounded-lg inline-block">
-                    ou <strong>48x de R$ {(vehicle.price / 48).toLocaleString('pt-BR')}</strong> sem juros
-                  </p>
-                </div>
 
-                <div className="flex gap-2">
-                  <Button 
-                    className="flex-1 h-12 font-semibold shadow-lg text-white"
-                    style={{ backgroundColor: primaryColor }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedVehicle(vehicle);
-                      setIsContactDialogOpen(true);
-                    }}
-                  >
-                    <MessageCircle className="size-5 mr-2" />
-                    Tenho Interesse
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    size="icon"
-                    className="h-12 w-12 border-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const whatsappUrl = `https://wa.me/${store.phone?.replace(/\D/g, '')}?text=Olá! Tenho interesse no ${vehicle.brand} ${vehicle.model}`;
-                      window.open(whatsappUrl, '_blank');
-                    }}
-                  >
-                    <Phone className="size-5" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  <div className="flex gap-2">
+                    <Button 
+                      className="flex-1 h-12 font-semibold shadow-lg text-white"
+                      style={{ backgroundColor: primaryColor }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedVehicle(vehicle);
+                        setIsContactDialogOpen(true);
+                      }}
+                    >
+                      <MessageCircle className="size-5 mr-2" />
+                      Tenho Interesse
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      size="icon"
+                      className="h-12 w-12 border-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const whatsappUrl = `https://wa.me/${store.phone?.replace(/\D/g, '')}?text=Olá! Tenho interesse no ${vehicle.brand} ${vehicle.model}`;
+                        window.open(whatsappUrl, '_blank');
+                      }}
+                    >
+                      <Phone className="size-5" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {filteredVehicles.length === 0 && (
@@ -604,31 +620,35 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
             </DialogHeader>
             
             <div className="space-y-8">
-              {/* Fallback de Imagem Principal no Modal */}
-              <div className="relative aspect-video bg-gray-100 rounded-xl flex items-center justify-center shadow-inner">
-                <Car className="size-32 text-gray-300" />
+              {/* Leitura da imagem principal no modal */}
+              <div className="relative aspect-video bg-gray-100 rounded-xl flex items-center justify-center shadow-inner overflow-hidden">
+                {selectedVehicle.images && selectedVehicle.images.length > 0 ? (
+                  <img src={selectedVehicle.images[0].url} alt="Carro" className="w-full h-full object-cover" />
+                ) : (
+                  <Car className="size-32 text-gray-300" />
+                )}
               </div>
 
               {/* Vehicle Info Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-linear-to-br from-blue-50 to-blue-100 p-6 rounded-xl text-center border-2 border-blue-200">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl text-center border-2 border-blue-200">
                   <Calendar className="size-8 mx-auto mb-3 text-blue-600" />
                   <p className="text-xs text-gray-600 mb-1">Ano/Modelo</p>
-                  <p className="text-2xl font-bold text-gray-900">{selectedVehicle.year}/{selectedVehicle.year}</p>
+                  <p className="text-2xl font-bold text-gray-900">{selectedVehicle.year}</p>
                 </div>
-                <div className="bg-linear-to-br from-green-50 to-green-100 p-6 rounded-xl text-center border-2 border-green-200">
+                <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl text-center border-2 border-green-200">
                   <Gauge className="size-8 mx-auto mb-3 text-green-600" />
                   <p className="text-xs text-gray-600 mb-1">Quilometragem</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {selectedVehicle.km.toLocaleString('pt-BR')} km
                   </p>
                 </div>
-                <div className="bg-linear-to-br from-purple-50 to-purple-100 p-6 rounded-xl text-center border-2 border-purple-200">
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl text-center border-2 border-purple-200">
                   <Fuel className="size-8 mx-auto mb-3 text-purple-600" />
                   <p className="text-xs text-gray-600 mb-1">Combustível</p>
                   <p className="text-2xl font-bold text-gray-900">Flex</p>
                 </div>
-                <div className="bg-linear-to-br from-orange-50 to-orange-100 p-6 rounded-xl text-center border-2 border-orange-200">
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl text-center border-2 border-orange-200">
                   <Cog className="size-8 mx-auto mb-3 text-orange-600" />
                   <p className="text-xs text-gray-600 mb-1">Câmbio</p>
                   <p className="text-2xl font-bold text-gray-900">Automático</p>
@@ -636,7 +656,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
               </div>
 
               {/* Price Section */}
-              <div className="bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 rounded-2xl border-2 border-blue-200">
+              <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 rounded-2xl border-2 border-blue-200">
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                   <div>
                     <p className="text-sm text-gray-600 mb-2">Preço à vista com desconto</p>
@@ -647,15 +667,15 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
                       R$ {selectedVehicle.price.toLocaleString('pt-BR')}
                     </p>
                     <div className="flex flex-wrap gap-3">
-                      <p className="text-sm text-gray-700 bg-white px-4 py-2 rounded-lg font-semibold">
-                        💳 <strong>48x de R$ {(selectedVehicle.price / 48).toLocaleString('pt-BR')}</strong> sem juros
+                      <p className="text-sm text-gray-700 bg-white px-4 py-2 rounded-lg font-semibold shadow-sm">
+                        💳 <strong>48x de R$ {(selectedVehicle.price / 48).toLocaleString('pt-BR', {maximumFractionDigits:0})}</strong> sem juros
                       </p>
-                      <p className="text-sm text-gray-700 bg-white px-4 py-2 rounded-lg font-semibold">
+                      <p className="text-sm text-gray-700 bg-white px-4 py-2 rounded-lg font-semibold shadow-sm">
                         🤝 <strong>Aceita troca</strong> - Avaliamos seu usado
                       </p>
                     </div>
                   </div>
-                  <Badge className="bg-linear-to-r from-green-500 to-green-600 text-white text-base px-6 py-3 shadow-lg border-0">
+                  <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white text-base px-6 py-3 shadow-lg border-0">
                     <Check className="size-6 mr-2" />
                     Garantia Inclusa
                   </Badge>
@@ -668,7 +688,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
                   <FileText className="size-6 text-blue-600" />
                   Descrição Completa
                 </h3>
-                <p className="text-gray-700 leading-relaxed text-lg bg-gray-50 p-6 rounded-xl">
+                <p className="text-gray-700 leading-relaxed text-lg bg-gray-50 p-6 rounded-xl border border-gray-100">
                   {selectedVehicle.description || "Veículo impecável. Agende uma visita na loja para conferir de perto!"}
                 </p>
               </div>
@@ -686,7 +706,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
                     'Sensor de estacionamento', 'Câmera de ré', 'Central multimídia',
                     'Bluetooth', 'Controle de tração', 'Rodas de liga leve'
                   ].map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-sm bg-gray-50 px-4 py-3 rounded-lg">
+                    <div key={idx} className="flex items-center gap-3 text-sm bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
                       <div className="bg-green-100 rounded-full p-1">
                         <Check className="size-4 text-green-600" />
                       </div>
@@ -726,7 +746,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
         </Dialog>
       )}
 
-      {/* Contact Form Dialog */}
+      {/* Contact Form Dialog (Onde o Lead Nasce!) */}
       <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -738,7 +758,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
           
           <form onSubmit={handleContactSubmit} className="space-y-5">
             {selectedVehicle && (
-              <div className="bg-linear-to-r from-blue-50 to-indigo-50 p-4 rounded-xl flex items-center gap-4 border-2 border-blue-200">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl flex items-center gap-4 border-2 border-blue-200">
                 <div className="bg-blue-600 p-3 rounded-xl">
                   <Car className="size-8 text-white" />
                 </div>
@@ -746,7 +766,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
                   <p className="font-bold text-gray-900 text-lg">
                     {selectedVehicle.brand} {selectedVehicle.model}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 font-medium">
                     {selectedVehicle.year} • R$ {selectedVehicle.price.toLocaleString('pt-BR')}
                   </p>
                 </div>
@@ -755,27 +775,30 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
 
             <div className="space-y-2">
               <Label htmlFor="nome" className="text-base font-semibold">Nome Completo *</Label>
-              <Input id="nome" name="nome" required placeholder="Seu nome completo" className="h-12" />
+              <Input id="nome" name="customerName" required placeholder="Seu nome completo" className="h-12" />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="telefone" className="text-base font-semibold">Telefone/WhatsApp *</Label>
               <Input 
                 id="telefone" 
-                name="telefone" 
+                name="customerPhone" 
                 type="tel" 
                 required 
                 placeholder="(11) 98765-4321" 
                 className="h-12"
               />
             </div>
+            
+            {/* Input oculto pra mandar o ID do carro na requisição */}
+            <input type="hidden" name="vehicleId" value={selectedVehicle?.id} />
 
-            <div className="bg-linear-to-r from-green-50 to-green-100 p-5 rounded-xl border-2 border-green-200">
+            <div className="bg-gradient-to-r from-green-50 to-green-100 p-5 rounded-xl border-2 border-green-200">
               <div className="flex gap-3">
                 <Clock className="size-6 text-green-600 shrink-0 mt-0.5" />
                 <div className="text-sm text-green-900">
                   <p className="font-bold mb-2 text-base">🎯 Atendimento Prioritário!</p>
-                  <ul className="space-y-1 text-green-800">
+                  <ul className="space-y-1 text-green-800 font-medium">
                     <li>✓ Resposta em até 15 minutos</li>
                     <li>✓ Código QR único para você</li>
                     <li>✓ Vendedor dedicado</li>
@@ -807,7 +830,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
       </Dialog>
 
       {/* Footer */}
-      <footer className="bg-linear-to-br from-gray-900 to-gray-800 text-gray-300 py-16 mt-16">
+      <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-gray-300 py-16 mt-16">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-12 mb-12">
             <div>
@@ -866,7 +889,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-700">
                   <span>Domingo</span>
-                  <span className="font-semibold">09:00 - 13:00</span>
+                  <span className="font-semibold">Fechado</span>
                 </div>
               </div>
             </div>
@@ -875,10 +898,10 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
           <div className="border-t border-gray-700 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-gray-400 text-sm">
-                © 2024 {store.name}. Todos os direitos reservados.
+                © {new Date().getFullYear()} {store.name}. Todos os direitos reservados.
               </p>
-              <p className="text-gray-500 text-xs">
-                Powered by <strong className="text-blue-400">MVPCarLead</strong> - Atribuição Offline
+              <p className="text-gray-500 text-xs flex items-center gap-1">
+                Powered by <strong className="text-blue-400">LeadTrack</strong> - Atribuição Offline
               </p>
             </div>
           </div>
