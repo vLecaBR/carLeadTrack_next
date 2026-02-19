@@ -37,7 +37,6 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -104,10 +103,9 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
     setPriceRange([0, 500000]);
     setYearRange([1920, new Date().getFullYear()]);
     setSelectedBrand('all');
-    setSortBy('price-asc'); // Mantém o menor preço ao resetar
+    setSortBy('price-asc');
   };
 
-  // Verifica se há algum filtro ativado pelo usuário para mostrar a tag "Ativos"
   const hasActiveFilters = 
     selectedBrand !== 'all' || 
     priceRange[0] > 0 || 
@@ -466,7 +464,6 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
         {/* Vehicle Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredVehicles.map((vehicle) => {
-            // A MAGICA: Lendo a imagem da tabela relacionada
             const coverImage = vehicle.images && vehicle.images.length > 0 ? vehicle.images[0].url : null;
             
             return (
@@ -606,147 +603,201 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
         )}
       </main>
 
-      {/* Vehicle Detail Dialog */}
+      {/* ========================================================= */}
+      {/* NOVO MODAL: LAYOUT ULTRA-WIDE EM 3 COLUNAS SEM SCROLL     */}
+      {/* ========================================================= */}
       {selectedVehicle && !isContactDialogOpen && (
         <Dialog open={!!selectedVehicle} onOpenChange={() => setSelectedVehicle(null)}>
-          <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-3xl font-bold">
-                {selectedVehicle.brand} {selectedVehicle.model} - {selectedVehicle.year}
-              </DialogTitle>
-              <DialogDescription>
-                Confira todos os detalhes deste veículo
-              </DialogDescription>
-            </DialogHeader>
+          {/* O segredo: max-w-[95vw] para largura total, h-[90vh] fixo, overflow-hidden para não ter scroll principal */}
+          <DialogContent
+  className="
+    !max-w-[95vw] 
+    w-[95vw] 
+    h-[95vh] 
+    p-0 
+    flex 
+    flex-col 
+    overflow-hidden 
+    border-0 
+    shadow-2xl 
+    rounded-2xl
+  "
+>
             
-            <div className="space-y-8">
-              {/* Leitura da imagem principal no modal */}
-              <div className="relative aspect-video bg-gray-100 rounded-xl flex items-center justify-center shadow-inner overflow-hidden">
+            {/* Header invisível só para acessibilidade do Shadcn/Radix */}
+            <DialogHeader className="sr-only">
+              <DialogTitle>{selectedVehicle.brand} {selectedVehicle.model}</DialogTitle>
+              <DialogDescription>Visualizando todos os detalhes do veículo em tela cheia.</DialogDescription>
+            </DialogHeader>
+
+            {/* Layout dividido nas 3 colunas, ocupando a altura 100% */}
+            <div className="flex flex-col lg:flex-row flex-1 min-h-0 h-full">
+              
+              {/* COLUNA 1 (40%): FOTO DO CARRO */}
+              <div className="lg:w-[40%] h-[40vh] lg:h-full bg-gray-900 relative shrink-0">
                 {selectedVehicle.images && selectedVehicle.images.length > 0 ? (
-                  <img src={selectedVehicle.images[0].url} alt="Carro" className="w-full h-full object-cover" />
+                  <img 
+                    src={selectedVehicle.images[0].url} 
+                    alt="Carro" 
+                    className="w-full h-full object-cover" 
+                  />
                 ) : (
-                  <Car className="size-32 text-gray-300" />
+                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                    <Car className="size-32 text-gray-400" />
+                  </div>
                 )}
+                <Badge className="absolute top-6 left-6 bg-gradient-to-r from-green-500 to-green-600 text-white shadow-xl border-0 py-2 px-4 text-sm font-bold">
+                  <Check className="size-4 mr-2 inline" />
+                  Garantia Inclusa
+                </Badge>
               </div>
 
-              {/* Vehicle Info Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl text-center border-2 border-blue-200">
-                  <Calendar className="size-8 mx-auto mb-3 text-blue-600" />
-                  <p className="text-xs text-gray-600 mb-1">Ano/Modelo</p>
-                  <p className="text-2xl font-bold text-gray-900">{selectedVehicle.year}</p>
-                </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl text-center border-2 border-green-200">
-                  <Gauge className="size-8 mx-auto mb-3 text-green-600" />
-                  <p className="text-xs text-gray-600 mb-1">Quilometragem</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {selectedVehicle.km.toLocaleString('pt-BR')} km
+              {/* COLUNA 2 (30%): DADOS TÉCNICOS & OPCIONAIS */}
+              <div className="lg:w-[30%] h-full p-6 lg:p-8 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-100 bg-white shrink-0">
+                
+                {/* Título */}
+                <div className="shrink-0 mb-8">
+                  <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 leading-tight">
+                    {selectedVehicle.brand} {selectedVehicle.model}
+                  </h2>
+                  <p className="text-gray-500 font-medium mt-2 text-lg">
+                    Ano {selectedVehicle.year} • {selectedVehicle.km.toLocaleString('pt-BR')} km
                   </p>
                 </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl text-center border-2 border-purple-200">
-                  <Fuel className="size-8 mx-auto mb-3 text-purple-600" />
-                  <p className="text-xs text-gray-600 mb-1">Combustível</p>
-                  <p className="text-2xl font-bold text-gray-900">Flex</p>
-                </div>
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl text-center border-2 border-orange-200">
-                  <Cog className="size-8 mx-auto mb-3 text-orange-600" />
-                  <p className="text-xs text-gray-600 mb-1">Câmbio</p>
-                  <p className="text-2xl font-bold text-gray-900">Automático</p>
-                </div>
-              </div>
 
-              {/* Price Section */}
-              <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 rounded-2xl border-2 border-blue-200">
-                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Preço à vista com desconto</p>
-                    <p 
-                      className="text-5xl font-bold mb-3"
-                      style={{ color: primaryColor }}
-                    >
-                      R$ {selectedVehicle.price.toLocaleString('pt-BR')}
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      <p className="text-sm text-gray-700 bg-white px-4 py-2 rounded-lg font-semibold shadow-sm">
-                        💳 <strong>48x de R$ {(selectedVehicle.price / 48).toLocaleString('pt-BR', {maximumFractionDigits:0})}</strong> sem juros
-                      </p>
-                      <p className="text-sm text-gray-700 bg-white px-4 py-2 rounded-lg font-semibold shadow-sm">
-                        🤝 <strong>Aceita troca</strong> - Avaliamos seu usado
-                      </p>
+                {/* Grid 4 ícones */}
+                <div className="grid grid-cols-2 gap-4 mb-8 shrink-0">
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center gap-4">
+                    <div className="bg-white p-2 rounded-lg shadow-sm"><Calendar className="size-5 text-blue-600" /></div>
+                    <div><p className="text-xs text-gray-500">Ano</p><p className="font-bold text-gray-900">{selectedVehicle.year}</p></div>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center gap-4">
+                    <div className="bg-white p-2 rounded-lg shadow-sm"><Gauge className="size-5 text-green-600" /></div>
+                    <div><p className="text-xs text-gray-500">KM</p><p className="font-bold text-gray-900">{selectedVehicle.km.toLocaleString('pt-BR')}</p></div>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center gap-4">
+                    <div className="bg-white p-2 rounded-lg shadow-sm"><Fuel className="size-5 text-purple-600" /></div>
+                    <div><p className="text-xs text-gray-500">Combustível</p><p className="font-bold text-gray-900">Flex</p></div>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center gap-4">
+                    <div className="bg-white p-2 rounded-lg shadow-sm"><Cog className="size-5 text-orange-600" /></div>
+                    <div><p className="text-xs text-gray-500">Câmbio</p><p className="font-bold text-gray-900">Auto</p></div>
+                  </div>
+                </div>
+
+                {/* Lista de Opcionais Completa */}
+                <div className="flex-1 min-h-0 flex flex-col">
+                  <h3 className="font-bold text-gray-900 mb-4 text-xl flex items-center gap-2">
+                    <Check className="size-5 text-blue-600" /> Características
+                  </h3>
+                  {/* Se a lista for muito longa, apenas ELA rola internamente sem quebrar a tela principal */}
+                  <div className="overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {[
+                        'Ar condicionado digital', 'Direção elétrica', 'Vidros elétricos',
+                        'Travas elétricas', 'Airbags frontais e laterais', 'Freios ABS',
+                        'Sensor de estacionamento', 'Câmera de ré', 'Central multimídia',
+                        'Bluetooth', 'Controle de tração', 'Rodas de liga leve'
+                      ].map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-sm bg-gray-50 px-3 py-2.5 rounded-lg border border-gray-100">
+                          <Check className="size-4 text-green-600 shrink-0" />
+                          <span className="font-medium text-gray-700">{feature}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white text-base px-6 py-3 shadow-lg border-0">
-                    <Check className="size-6 mr-2" />
-                    Garantia Inclusa
-                  </Badge>
                 </div>
+
               </div>
 
-              {/* Description */}
-              <div>
-                <h3 className="font-bold text-gray-900 mb-4 text-2xl flex items-center gap-2">
-                  <FileText className="size-6 text-blue-600" />
-                  Descrição Completa
-                </h3>
-                <p className="text-gray-700 leading-relaxed text-lg bg-gray-50 p-6 rounded-xl border border-gray-100">
-                  {selectedVehicle.description || "Veículo impecável. Agende uma visita na loja para conferir de perto!"}
-                </p>
-              </div>
+              {/* COLUNA 3 (30%): PREÇO, DESCRIÇÃO & BOTÕES */}
+              <div className="lg:w-[30%] h-full p-6 lg:p-8 flex flex-col bg-gray-50/50 shrink-0 relative">
+                
+                {/* Opcional: O ícone do (X) de fechar vai ficar naturalmente no canto direito por causa do Shadcn, 
+                    então deixamos um espacinho no topo ou desenhamos os blocos abaixo. */}
 
-              {/* Features List */}
-              <div>
-                <h3 className="font-bold text-gray-900 mb-6 text-2xl flex items-center gap-2">
-                  <Check className="size-6 text-blue-600" />
-                  Características e Equipamentos
-                </h3>
-                <div className="grid md:grid-cols-2 gap-3">
-                  {[
-                    'Ar condicionado digital', 'Direção elétrica', 'Vidros elétricos',
-                    'Travas elétricas', 'Airbags frontais e laterais', 'Freios ABS',
-                    'Sensor de estacionamento', 'Câmera de ré', 'Central multimídia',
-                    'Bluetooth', 'Controle de tração', 'Rodas de liga leve'
-                  ].map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-sm bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
-                      <div className="bg-green-100 rounded-full p-1">
-                        <Check className="size-4 text-green-600" />
+                {/* Bloco de Preço Super Chamativo */}
+                <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6 md:p-8 rounded-2xl border-2 border-blue-200 shadow-sm shrink-0 mb-8 mt-4 lg:mt-0">
+                  <p className="text-sm text-gray-600 mb-2 font-medium">Preço à vista</p>
+                  <p 
+                    className="text-4xl lg:text-5xl font-extrabold mb-6 tracking-tight"
+                    style={{ color: primaryColor }}
+                  >
+                    R$ {selectedVehicle.price.toLocaleString('pt-BR')}
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm border border-blue-100">
+                      <div className="bg-blue-100 p-2 rounded-lg"><CreditCard className="size-5 text-blue-600" /></div>
+                      <div>
+                        <p className="text-xs text-gray-500">Financiamento facilitado</p>
+                        <p className="text-sm font-bold text-gray-900">48x de R$ {(selectedVehicle.price / 48).toLocaleString('pt-BR', {maximumFractionDigits:0})} sem juros</p>
                       </div>
-                      <span className="font-medium text-gray-700">{feature}</span>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm border border-blue-100">
+                      <div className="bg-green-100 p-2 rounded-lg"><Car className="size-5 text-green-600" /></div>
+                      <div>
+                        <p className="text-xs text-gray-500">Super avaliação</p>
+                        <p className="text-sm font-bold text-gray-900">Aceitamos seu usado na troca</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Descrição Completa */}
+                <div className="flex-1 min-h-0 flex flex-col mb-8">
+                  <h3 className="font-bold text-gray-900 mb-4 text-xl flex items-center gap-2">
+                    <FileText className="size-5 text-blue-600" /> Descrição Completa
+                  </h3>
+                  <div className="bg-white p-6 rounded-xl border border-gray-200 flex-1 overflow-y-auto custom-scrollbar shadow-sm">
+                    <p className="text-gray-700 leading-relaxed text-base">
+                      {selectedVehicle.description || "Veículo impecável. Agende uma visita na loja para conferir de perto!"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Botões Travados no Fundo */}
+                <div className="shrink-0 space-y-3">
+                  <Button 
+                    className="w-full h-16 text-lg font-bold shadow-xl text-white hover:scale-[1.02] transition-transform"
+                    style={{ backgroundColor: primaryColor }}
+                    onClick={() => {
+                      setIsContactDialogOpen(true);
+                    }}
+                  >
+                    <MessageCircle className="size-6 mr-2" />
+                    Demonstrar Interesse Agora
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="w-full h-14 text-base font-bold border-2 hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition-colors"
+                    onClick={() => {
+                      const whatsappUrl = `https://wa.me/${store.phone?.replace(/\D/g, '')}?text=Olá! Tenho interesse no ${selectedVehicle.brand} ${selectedVehicle.model} anunciado por R$ ${selectedVehicle.price}`;
+                      window.open(whatsappUrl, '_blank');
+                    }}
+                  >
+                    <Phone className="size-5 mr-2" />
+                    Chamar no WhatsApp
+                  </Button>
+                </div>
+
               </div>
 
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t-2">
-                <Button 
-                  className="flex-1 h-16 text-lg font-bold shadow-xl text-white"
-                  style={{ backgroundColor: primaryColor }}
-                  onClick={() => {
-                    setIsContactDialogOpen(true);
-                  }}
-                >
-                  <MessageCircle className="size-6 mr-2" />
-                  Demonstrar Interesse
-                </Button>
-                <Button 
-                  size="lg"
-                  variant="outline"
-                  className="h-16 px-8 text-lg font-bold border-2"
-                  onClick={() => {
-                    const whatsappUrl = `https://wa.me/${store.phone?.replace(/\D/g, '')}?text=Olá! Tenho interesse no ${selectedVehicle.brand} ${selectedVehicle.model}`;
-                    window.open(whatsappUrl, '_blank');
-                  }}
-                >
-                  <Phone className="size-6 mr-2" />
-                  WhatsApp
-                </Button>
-              </div>
             </div>
+            
+            {/* CSS para as barras de rolagem internas (caso texto da descrição seja muito grande) ficarem finas e não quebrarem a UI */}
+            <style jsx>{`
+              .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+              .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+              .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+              .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+            `}</style>
+
           </DialogContent>
         </Dialog>
       )}
 
-      {/* Contact Form Dialog (Onde o Lead Nasce!) */}
+      {/* Contact Form Dialog */}
       <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -790,7 +841,6 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
               />
             </div>
             
-            {/* Input oculto pra mandar o ID do carro na requisição */}
             <input type="hidden" name="vehicleId" value={selectedVehicle?.id} />
 
             <div className="bg-gradient-to-r from-green-50 to-green-100 p-5 rounded-xl border-2 border-green-200">
@@ -829,7 +879,7 @@ export function StorefrontPublic({ store, vehicles, onBackToDashboard, onBackToL
         </DialogContent>
       </Dialog>
 
-      {/* Footer */}
+      {/* Footer (Totalmente restaurado!) */}
       <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-gray-300 py-16 mt-16">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-12 mb-12">
